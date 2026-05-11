@@ -1,10 +1,13 @@
-import requests
+import os
+import google.generativeai as genai
 from flask import Flask, render_template, request, jsonify
-import time
 
 app = Flask(__name__)
 
+# آپ کی نئی اے پی آئی کی
 API_KEY = "AIzaSyCp6mzAf3xj2pMCnl11CWCoEQDWE5SQaPM"
+genai.configure(api_key=API_KEY)
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 @app.route('/')
 def home():
@@ -12,27 +15,15 @@ def home():
 
 @app.route('/ask', methods=['POST'])
 def ask():
-    user_input = request.json.get("message", "")
-    
-    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={API_KEY}"
-    
-    headers = {'Content-Type': 'application/json'}
-    payload = {"contents": [{"parts": [{"text": user_input}]}]}
-
-    for i in range(3):
-        try:
-            response = requests.post(url, headers=headers, json=payload, timeout=15)
-            if response.status_code == 200:
-                data = response.json()
-                return jsonify({"reply": data['candidates'][0]['content']['parts'][0]['text']})
-            else:
-                time.sleep(2)
-        except Exception as e:
-            if i == 2:
-                return jsonify({"reply": f"Jarvis: Connection issue. Error: {str(e)}"})
-            time.sleep(2)
-
-    return jsonify({"reply": "Jarvis: Google is not responding. Please try again."})
+    try:
+        user_input = request.json.get("message", "")
+        if not user_input:
+            return jsonify({"reply": "کچھ تو لکھیں..."})
+        
+        response = model.generate_content(user_input)
+        return jsonify({"reply": response.text})
+    except Exception as e:
+        return jsonify({"reply": f"Jarvis: ابھی رابطہ نہیں ہو پا رہا۔ وجہ: {str(e)}"})
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True)
