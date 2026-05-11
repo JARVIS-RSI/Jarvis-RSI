@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <style>
+        body { background: #000; color: #00d2ff; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .box { border: 2px solid #00d2ff; padding: 40px; border-radius: 15px; }
+        input { display: block; margin: 10px; padding: 10px; background: #111; color: #fff; border: 1px solid #333; }
+        button { width: 100%; padding: 10px; background: #00d2ff; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <input type="email" id="email" placeholder="EMAIL">
+        <input type="password" id="pass" placeholder="PASSWORD">
+        <button onclick="auth()">ACCESS JARVIS</button>
+    </div>
+    <script>
+        async function auth(){
+            const r = await fetch('/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({email: document.getElementById('email').value, pass: document.getElementById('pass').value})
+            });
+            const d = await r.json();
+            if(d.status==='success') location.reload(); else alert("ACCESS DENIED");
+        }
+    </script>
+</body>
+</html>
