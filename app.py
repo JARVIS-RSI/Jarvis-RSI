@@ -1,12 +1,10 @@
-import os
 import requests
 from flask import Flask, render_template, request, jsonify
 import time
 
 app = Flask(__name__)
 
-# اب یہ ورسل کی سیٹنگز سے چابی اٹھائے گا
-API_KEY = os.getenv("GOOGLE_API_KEY")
+API_KEY = "AIzaSyCp6mzAf3xj2pMCnl11CWCoEQDWE5SQaPM"
 
 @app.route('/')
 def home():
@@ -16,11 +14,7 @@ def home():
 def ask():
     user_input = request.json.get("message", "")
     
-    # اگر چابی نہ ملے تو یہ میسج دکھائے گا
-    if not API_KEY:
-        return jsonify({"reply": "Jarvis Error: API Key missing in Vercel settings."})
-
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={API_KEY}"
     
     headers = {'Content-Type': 'application/json'}
     payload = {"contents": [{"parts": [{"text": user_input}]}]}
@@ -38,7 +32,7 @@ def ask():
                 return jsonify({"reply": f"Jarvis: Connection issue. Error: {str(e)}"})
             time.sleep(2)
 
-    return jsonify({"reply": "Jarvis: Google is not responding. Check VPN Location or API Key."})
+    return jsonify({"reply": "Jarvis: Google is not responding. Please try again."})
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
