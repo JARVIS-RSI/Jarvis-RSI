@@ -1,15 +1,25 @@
-import os
-import google.generativeai as genai
+import requests
 from flask import Flask, render_template, request, jsonify
+import json
 
 app = Flask(__name__)
 
-# Aapki mazboot API Key
+# Aapki New API Key jo aapne abhi banai hai
 API_KEY = "AIzaSyCjIAfPjWKu5iPvwC50aLSDK-AcAAt2bSw"
 
-# Official Google AI Setup
-genai.configure(api_key=API_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
+def get_latest_model():
+    # Ye function check karega ke kon sa model available hai
+    url = f"https://generativelanguage.googleapis.com/v1/models?key={API_KEY}"
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            models = response.json().get('models', [])
+            for m in models:
+                if 'generateContent' in m.get('supportedGenerationMethods', []):
+                    return m['name']
+        return "models/gemini-pro"
+    except:
+        return "models/gemini-pro"
 
 @app.route('/')
 def home():
@@ -17,18 +27,26 @@ def home():
 
 @app.route('/ask', methods=['POST'])
 def ask():
+    user_input = request.json.get("message", "")
+    
+    # Active model ka sahi naam hasil karna
+    active_model = get_latest_model()
+    
+    # Paka aur purana URL jo pehle kaam kar raha tha
+    url = f"https://generativelanguage.googleapis.com/v1/{active_model}:generateContent?key={API_KEY}"
+    
+    headers = {'Content-Type': 'application/json'}
+    payload = {"contents": [{"parts": [{"text": user_input}]}]}
+
     try:
-        user_input = request.json.get("message", "")
-        if not user_input:
-            return jsonify({"reply": "Sohail bhai, kuch to likhein..."})
-        
-        # Direct connection to Google's brain
-        response = model.generate_content(user_input)
-        return jsonify({"reply": response.text})
-        
+        response = requests.post(url, headers=headers, data=json.dumps(payload), timeout=30)
+        if response.status_code == 200:
+            data = response.json()
+            return jsonify({"reply": data['candidates'][0]['content']['parts'][0]['text']})
+        else:
+            return jsonify({"reply": f"Jarvis: Google is checking the model. Please try again in a moment. (Code: {response.status_code})"})
     except Exception as e:
-        # Agar koi masla ho to real error bataye ga
-        return jsonify({"reply": f"Jarvis: Connection mein masla hai. Error: {str(e)}"})
+        return jsonify({"reply": f"Network Error: {str(e)}"})
 
 if __name__ == '__main__':
     app.run(debug=True)
