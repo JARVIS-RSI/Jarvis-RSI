@@ -1,27 +1,46 @@
-CORE_DATA = {
-    "name": "Jarvis-RSI",
-    "owner": "Raja Sohail Imran",
-    "age": 25,
-    "mission": "Solar & Furniture Business Growth",
-    "status": "Active"
-}
+import json
+import os
+from datetime import datetime
+
+MEMORY_FILE = 'memory.json'
+
+def load_memory():
+    if os.path.exists(MEMORY_FILE):
+        with open(MEMORY_FILE, 'r') as f:
+            return json.load(f)
+    return {}
+
+def save_memory(data):
+    with open(MEMORY_FILE, 'w') as f:
+        json.dump(data, f, indent=4)
 
 def process_logic(user_input):
-    user_input = user_input.lower()
+    memory = load_memory()
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    # 1. Chat History Save Karna
+    chat_entry = {"time": timestamp, "user": user_input}
+    memory['chat_history'].append(chat_entry)
+    
+    user_input_lower = user_input.lower()
 
-    if any(word in user_input for word in ["kon ho", "intro", "shanakht"]):
-        return f"Sohail bhai, main aapka Jarvis hoon. Raja Nazakat Ali ka beta aur 25 saal ka jawan mehnat kash insaan, Raja Sohail Imran, mera maalik hai. Mera maqsad aapke Solar aur Furniture business ko scale karna hai."
+    # 2. Important Notes & Reminders
+    if "important" in user_input_lower or "yaad rakhna" in user_input_lower:
+        memory['important_reminders'].append({"time": timestamp, "note": user_input})
+        save_memory(memory)
+        return "Sohail bhai, maine ye important baat note kar li hai aur history mein bhi daal di hai."
 
-    if "yaad rakhna" in user_input or "note kar lo" in user_input:
-        return "Sohail bhai, maine ye baat zehan nasheen kar li hai. Main ise memory file mein save kar raha hoon."
+    # 3. Online Work Details
+    if "online kaam" in user_input_lower or "project update" in user_input_lower:
+        memory['online_projects'].append({"time": timestamp, "detail": user_input})
+        save_memory(memory)
+        return "Sohail bhai, aapke online project ki details update ho gayi hain."
 
-    if "solar" in user_input:
-        return "Solar business ke liye net metering aur panel rates ki monitoring zaroori hai. Sohail bhai, aapka 5 saal ka experience inventory management mein yahan kaam aaye ga."
+    # Har surat mein memory save karna (History ke liye)
+    save_memory(memory)
 
-    if "furniture" in user_input and "china" in user_input:
-        return "China (Guangdong) se modern furniture sourcing ke liye humein logistics aur container costs ka purana data check karna chahiye."
-
-    if "faisla" in user_input or "mashwara" in user_input:
-        return "Sohail bhai, data ke mutabiq aapko scalability par focus karna chahiye. Business ko automate karna hi agla step hai."
+    # Specific trigger for introduction
+    if any(word in user_input_lower for word in ["kon ho", "intro"]):
+        return f"Main Jarvis hoon, Sohail bhai. Aapki poori chat history aur online kaam ka record mere paas mahfooz hai."
 
     return None
