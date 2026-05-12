@@ -1,7 +1,11 @@
 import requests
 from flask import Flask, render_template, request, jsonify
 import json
-
+try:
+    import brain
+    USE_BRAIN = True
+except:
+    USE_BRAIN = False
 app = Flask(__name__)
 
 # Aapki New API Key jo aapne abhi banai hai
@@ -28,7 +32,14 @@ def home():
 @app.route('/ask', methods=['POST'])
 def ask():
     user_input = request.json.get("message", "")
-    
+    # Check if brain.py has something special to say
+    if USE_BRAIN:
+        try:
+            advanced_reply = brain.process_logic(user_input)
+            if advanced_reply:
+                return jsonify({"reply": advanced_reply})
+        except:
+            pass # Agar brain.py mein error ho, to purana code chalne do
     # Active model ka sahi naam hasil karna
     active_model = get_latest_model()
     
