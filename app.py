@@ -4,8 +4,10 @@ from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
-# آپ کی نئی اے پی آئی کی
-API_KEY = "AIzaSyCp6mzAf3xj2pMCnl11CWCoEQDWE5SQaPM"
+# Aapki mazboot API Key
+API_KEY = "AIzaSyCjIAfPjWKu5iPvwC50aLSDK-AcAAt2bSw"
+
+# Official Google AI Setup
 genai.configure(api_key=API_KEY)
 model = genai.GenerativeModel('gemini-1.5-flash')
 
@@ -18,12 +20,15 @@ def ask():
     try:
         user_input = request.json.get("message", "")
         if not user_input:
-            return jsonify({"reply": "کچھ تو لکھیں..."})
+            return jsonify({"reply": "Sohail bhai, kuch to likhein..."})
         
+        # Direct connection to Google's brain
         response = model.generate_content(user_input)
         return jsonify({"reply": response.text})
+        
     except Exception as e:
-        return jsonify({"reply": f"Jarvis: ابھی رابطہ نہیں ہو پا رہا۔ وجہ: {str(e)}"})
+        # Agar koi masla ho to real error bataye ga
+        return jsonify({"reply": f"Jarvis: Connection mein masla hai. Error: {str(e)}"})
 
 if __name__ == '__main__':
     app.run(debug=True)
